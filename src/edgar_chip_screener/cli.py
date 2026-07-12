@@ -4,7 +4,8 @@ import argparse
 
 from .config import load_config
 from .download import download_sec_bulk_files
-from .screen import run_screen
+from .fmp import FmpClient, apply_fmp_filters
+from .screen import run_screen, write_results
 
 
 def main() -> None:
@@ -25,6 +26,8 @@ def main() -> None:
         action="append",
         help="Screen one CIK. Can be repeated. Useful for small test runs.",
     )
+    screen_parser.add_argument("--with-fmp", action="store_true", help="Apply FMP market-data filters")
+    screen_parser.add_argument("--fmp-api-key", help="FMP API key. Defaults to FMP_API_KEY environment variable.")
 
     download_parser = subparsers.add_parser("download", help="Download SEC bulk ZIP files")
     download_parser.add_argument("--output-dir", default="data/raw", help="Directory for SEC ZIP files")
@@ -46,6 +49,14 @@ def main() -> None:
             limit=args.limit,
             only_ciks=args.only_cik,
         )
+        if args.with_fmp:
+            print("Applying FMP market-data filters to SEC-passing companies...")
+            try:
+                fmp_client = FmpClient(args.fmp_api_key)
+            except ValueError as exc:
+                parser.error(str(exc))
+            apply_fmp_filters(results, config, fmp_client)
+            write_results(args.output, results)
         passed = sum(1 for result in results if result.passed)
         print(f"Screened {len(results)} chip-related filers. Passed: {passed}. Output: {args.output}")
     elif args.command == "download":

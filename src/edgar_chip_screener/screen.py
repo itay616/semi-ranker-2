@@ -56,7 +56,7 @@ def run_screen(
         _screen_company(company, companyfacts.get(company.cik), config, today)
         for company in candidates
     ]
-    _write_results(output_csv, results)
+    write_results(output_csv, results)
     return results
 
 
@@ -294,7 +294,7 @@ def _latest_plain_value(values_by_year: dict[int, float]) -> float | None:
     return values_by_year[max(values_by_year)]
 
 
-def _write_results(path: str | Path, results: list[ScreenResult]) -> None:
+def write_results(path: str | Path, results: list[ScreenResult]) -> None:
     output_path = Path(path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     rows = [result.to_row() for result in results]

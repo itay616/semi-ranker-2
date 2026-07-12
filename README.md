@@ -78,6 +78,46 @@ python -m edgar_chip_screener screen `
   --output outputs/chip_screen.csv
 ```
 
+## FMP Market Data Layer
+
+The SEC screen can optionally apply a second market-data layer using Financial Modeling Prep (FMP).
+
+Set your API key in PowerShell:
+
+```powershell
+$env:FMP_API_KEY="your_fmp_api_key"
+```
+
+Then run:
+
+```powershell
+python -m edgar_chip_screener screen `
+  --submissions data/raw/submissions.zip `
+  --companyfacts data/raw/companyfacts.zip `
+  --output outputs/chip_screen_with_fmp.csv `
+  --limit 100 `
+  --with-fmp
+```
+
+The FMP layer is applied only to companies that passed the SEC filters. It adds and filters:
+
+- `market_cap < 100B`
+- `dividend_yield >= 2%`
+- `price_to_book < 1`
+- `current_price <= 1.15 * five_year_low`
+
+You can also pass the API key directly:
+
+```powershell
+python -m edgar_chip_screener screen `
+  --submissions data/raw/submissions.zip `
+  --companyfacts data/raw/companyfacts.zip `
+  --output outputs/chip_screen_with_fmp.csv `
+  --limit 100 `
+  --with-fmp `
+  --fmp-api-key your_fmp_api_key
+```
+
 Optional config override:
 
 ```powershell

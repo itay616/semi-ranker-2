@@ -25,6 +25,11 @@ class ScreenerConfig:
     dividend_consistency_years: int = 5
     acquisition_spend_to_cfo_max: float = 0.2
     acquisition_spend_to_assets_max: float = 0.05
+    market_cap_max: float = 100_000_000_000
+    dividend_yield_min: float = 0.02
+    price_to_book_max: float = 1.0
+    near_low_years: int = 5
+    near_low_max_multiple: float = 1.15
     tag_aliases: dict[str, list[str]] = field(default_factory=dict)
 
     @property
