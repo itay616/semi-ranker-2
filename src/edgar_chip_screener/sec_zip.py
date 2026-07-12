@@ -19,22 +19,13 @@ def load_companyfacts_by_cik(path: str | Path, ciks: set[str]) -> dict[str, dict
     wanted = {normalize_cik(cik) for cik in ciks}
     loaded: dict[str, dict] = {}
     with ZipFile(path) as archive:
+        names = set(archive.namelist())
         for cik in wanted:
             member_name = f"CIK{cik}.json"
-            if member_name not in archive.namelist():
+            if member_name not in names:
                 continue
             with archive.open(member_name) as handle:
                 loaded[cik] = json.load(handle)
-    if loaded.keys() == wanted:
-        return loaded
-
-    missing = wanted - loaded.keys()
-    for _, payload in iter_json_zip(path):
-        cik = normalize_cik(str(payload.get("cik") or ""))
-        if cik in missing:
-            loaded[cik] = payload
-            if loaded.keys() == wanted:
-                break
     return loaded
 
 
