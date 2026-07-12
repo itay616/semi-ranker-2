@@ -4,7 +4,7 @@ from datetime import date
 
 from edgar_chip_screener.config import load_config
 from edgar_chip_screener.download import build_user_agent
-from edgar_chip_screener.screen import _screen_company
+from edgar_chip_screener.screen import _load_submission_candidates, _screen_company
 from edgar_chip_screener.submissions import CompanySubmission
 
 
@@ -43,6 +43,20 @@ def test_company_fails_negative_fcf() -> None:
 
 def test_user_agent_requires_contact_email() -> None:
     assert build_user_agent("owner@example.com") == "semi-ranker-2/0.1 contact=owner@example.com"
+
+
+def test_only_cik_skips_sic_filter(monkeypatch) -> None:
+    config = load_config()
+    payloads = {
+        "0000000001": {"cik": 1, "name": "Apple", "sic": "3571", "filings": {"recent": {}}},
+        "0000000002": {"cik": 2, "name": "Semi", "sic": "3674", "filings": {"recent": {}}},
+    }
+    monkeypatch.setattr(
+        "edgar_chip_screener.screen.load_submissions_by_cik",
+        lambda _, ciks: {cik: payloads[cik] for cik in ciks},
+    )
+    candidates = _load_submission_candidates("ignored.zip", config, only_ciks=["1"])
+    assert [candidate.cik for candidate in candidates] == ["0000000001"]
 
 
 def _filings() -> list[dict[str, str]]:

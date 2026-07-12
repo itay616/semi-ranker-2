@@ -43,6 +43,34 @@ The SEC expects automated requests to identify the tool and contact email. Do no
 
 ## Run
 
+For a quick first test, run only a few semiconductor-related candidates:
+
+```powershell
+python -m edgar_chip_screener screen `
+  --submissions data/raw/submissions.zip `
+  --companyfacts data/raw/companyfacts.zip `
+  --output outputs/chip_screen_sample.csv `
+  --limit 10
+```
+
+To test one known CIK:
+
+```powershell
+python -m edgar_chip_screener screen `
+  --submissions data/raw/submissions.zip `
+  --companyfacts data/raw/companyfacts.zip `
+  --output outputs/single_company.csv `
+  --only-cik 0000320193
+```
+
+Useful chip-company test CIKs:
+
+- AMD: `0000002488`
+- Intel: `0000050863`
+- Nvidia: `0001045810`
+
+Run the full screen:
+
 ```powershell
 python -m edgar_chip_screener screen `
   --submissions data/raw/submissions.zip `

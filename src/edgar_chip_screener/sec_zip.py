@@ -18,14 +18,40 @@ def iter_json_zip(path: str | Path) -> Iterable[tuple[str, dict]]:
 def load_companyfacts_by_cik(path: str | Path, ciks: set[str]) -> dict[str, dict]:
     wanted = {normalize_cik(cik) for cik in ciks}
     loaded: dict[str, dict] = {}
+    with ZipFile(path) as archive:
+        for cik in wanted:
+            member_name = f"CIK{cik}.json"
+            if member_name not in archive.namelist():
+                continue
+            with archive.open(member_name) as handle:
+                loaded[cik] = json.load(handle)
+    if loaded.keys() == wanted:
+        return loaded
+
+    missing = wanted - loaded.keys()
     for _, payload in iter_json_zip(path):
         cik = normalize_cik(str(payload.get("cik") or ""))
-        if cik in wanted:
+        if cik in missing:
             loaded[cik] = payload
+            if loaded.keys() == wanted:
+                break
+    return loaded
+
+
+def load_submissions_by_cik(path: str | Path, ciks: set[str]) -> dict[str, dict]:
+    wanted = {normalize_cik(cik) for cik in ciks}
+    loaded: dict[str, dict] = {}
+    with ZipFile(path) as archive:
+        names = set(archive.namelist())
+        for cik in wanted:
+            member_name = f"CIK{cik}.json"
+            if member_name not in names:
+                continue
+            with archive.open(member_name) as handle:
+                loaded[cik] = json.load(handle)
     return loaded
 
 
 def normalize_cik(value: str | int) -> str:
     digits = "".join(char for char in str(value) if char.isdigit())
     return digits.zfill(10)
-

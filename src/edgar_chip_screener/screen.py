@@ -8,7 +8,7 @@ from typing import Any
 
 from .config import ScreenerConfig
 from .facts import Fact, iter_company_facts, latest_annual_by_year, latest_instant_fact
-from .sec_zip import iter_json_zip, load_companyfacts_by_cik
+from .sec_zip import iter_json_zip, load_companyfacts_by_cik, load_submissions_by_cik, normalize_cik
 from .submissions import CompanySubmission, has_enough_filings, parse_submission
 
 
@@ -44,10 +44,14 @@ def run_screen(
     config: ScreenerConfig,
     output_csv: str | Path,
     today: date | None = None,
+    limit: int | None = None,
+    only_ciks: list[str] | None = None,
 ) -> list[ScreenResult]:
     today = today or date.today()
-    candidates = _load_submission_candidates(submissions_zip, config, today)
+    candidates = _load_submission_candidates(submissions_zip, config, limit, only_ciks)
+    print(f"Found {len(candidates)} submission candidates. Loading matching company facts...")
     companyfacts = load_companyfacts_by_cik(companyfacts_zip, {company.cik for company in candidates})
+    print(f"Loaded company facts for {len(companyfacts)} candidates. Running filters...")
     results = [
         _screen_company(company, companyfacts.get(company.cik), config, today)
         for company in candidates
@@ -59,15 +63,26 @@ def run_screen(
 def _load_submission_candidates(
     submissions_zip: str | Path,
     config: ScreenerConfig,
-    today: date,
+    limit: int | None = None,
+    only_ciks: list[str] | None = None,
 ) -> list[CompanySubmission]:
     candidates: list[CompanySubmission] = []
     sic_codes = set(config.sic_codes)
+    wanted_ciks = {normalize_cik(cik) for cik in only_ciks or []}
+    if wanted_ciks:
+        for payload in load_submissions_by_cik(submissions_zip, wanted_ciks).values():
+            candidates.append(parse_submission(payload))
+            if limit and len(candidates) >= limit:
+                break
+        return candidates
+
     for _, payload in iter_json_zip(submissions_zip):
         company = parse_submission(payload)
         if company.sic not in sic_codes:
             continue
         candidates.append(company)
+        if limit and len(candidates) >= limit:
+            break
     return candidates
 
 
