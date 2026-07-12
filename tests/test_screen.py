@@ -5,7 +5,7 @@ from datetime import date
 from edgar_chip_screener.config import load_config
 from edgar_chip_screener.download import build_user_agent
 from edgar_chip_screener.screen import _load_submission_candidates, _screen_company
-from edgar_chip_screener.submissions import CompanySubmission
+from edgar_chip_screener.submissions import CompanySubmission, parse_submission
 
 
 def test_company_passes_core_filters_with_clean_annual_history() -> None:
@@ -57,6 +57,21 @@ def test_only_cik_skips_sic_filter(monkeypatch) -> None:
     )
     candidates = _load_submission_candidates("ignored.zip", config, only_ciks=["1"])
     assert [candidate.cik for candidate in candidates] == ["0000000001"]
+
+
+def test_parse_submission_ignores_blank_tickers_and_exchanges() -> None:
+    company = parse_submission(
+        {
+            "cik": 123,
+            "name": "Messy Metadata Inc",
+            "sic": "3674",
+            "tickers": ["MMI", None, ""],
+            "exchanges": ["Nasdaq", None, " "],
+            "filings": {"recent": {}},
+        }
+    )
+    assert company.tickers == "MMI"
+    assert company.exchanges == "Nasdaq"
 
 
 def _filings() -> list[dict[str, str]]:

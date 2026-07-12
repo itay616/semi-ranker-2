@@ -25,8 +25,8 @@ def parse_submission(payload: dict[str, Any]) -> CompanySubmission:
         cik=normalize_cik(payload.get("cik") or payload.get("cik_str") or ""),
         name=str(payload.get("name") or ""),
         sic=str(payload.get("sic") or ""),
-        tickers=";".join(payload.get("tickers") or []),
-        exchanges=";".join(payload.get("exchanges") or []),
+        tickers=";".join(_clean_text_list(payload.get("tickers"))),
+        exchanges=";".join(_clean_text_list(payload.get("exchanges"))),
         recent_filings=recent_filings,
     )
 
@@ -80,6 +80,12 @@ def _columnar_filings_to_rows(filings: dict[str, list[Any]]) -> list[dict[str, s
     return rows
 
 
+def _clean_text_list(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [str(item) for item in value if item is not None and str(item).strip()]
+
+
 def _safe_year(value: str) -> int | None:
     if len(value) < 4:
         return None
@@ -87,4 +93,3 @@ def _safe_year(value: str) -> int | None:
         return int(value[:4])
     except ValueError:
         return None
-
