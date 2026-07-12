@@ -13,6 +13,7 @@ class DummyResult:
     tickers: str = "GOOD"
     passed: bool = True
     failed_filters: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
     metrics: dict[str, Any] = field(default_factory=dict)
 
 
@@ -21,9 +22,18 @@ class FakeFmpClient(FmpClient):
         self.payloads = payloads
         self.api_key = "fake"
         self.pause_seconds = 0
+        self.plan_limited_endpoints = set()
 
     def _json(self, endpoint: str, params: dict[str, Any]) -> Any:
         return self.payloads.get(endpoint, [])
+
+
+class PlanLimitedFmpClient(FakeFmpClient):
+    def _json(self, endpoint: str, params: dict[str, Any]) -> Any:
+        if endpoint == "quote":
+            self.plan_limited_endpoints.add(endpoint)
+            return []
+        return super()._json(endpoint, params)
 
 
 def test_fmp_market_snapshot_extracts_values_from_mock_payloads() -> None:
@@ -97,3 +107,14 @@ def test_apply_fmp_filters_marks_market_failures() -> None:
     assert "low_dividend_yield" in result.failed_filters
     assert "price_to_book_too_high" in result.failed_filters
     assert "not_near_multi_year_low" in result.failed_filters
+
+
+def test_apply_fmp_filters_records_plan_limited_endpoints() -> None:
+    config = load_config()
+    result = DummyResult()
+    client = PlanLimitedFmpClient({"profile-cik": [{"symbol": "GOOD", "price": 10, "marketCap": 1}]})
+
+    apply_fmp_filters([result], config, client)
+
+    assert "fmp_plan_limited:quote" in result.warnings
+    assert "missing_dividend_yield" in result.failed_filters

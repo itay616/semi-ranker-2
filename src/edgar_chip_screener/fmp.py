@@ -38,6 +38,7 @@ class FmpClient:
         if not self.api_key:
             raise ValueError("FMP API key is required. Pass --fmp-api-key or set FMP_API_KEY.")
         self.pause_seconds = pause_seconds
+        self.plan_limited_endpoints: set[str] = set()
 
     def market_snapshot(self, cik: str, tickers: str, years: int = 5) -> FmpMarketSnapshot | None:
         profile_by_cik = self._first_json("profile-cik", {"cik": cik.lstrip("0")})
@@ -104,6 +105,9 @@ class FmpClient:
         except HTTPError as exc:
             if exc.code in {401, 403}:
                 raise RuntimeError("FMP rejected the API key or plan access.") from exc
+            if exc.code == 402:
+                self.plan_limited_endpoints.add(endpoint)
+                return []
             if exc.code == 404:
                 return []
             raise
@@ -116,7 +120,17 @@ def apply_fmp_filters(results: list[Any], config: ScreenerConfig, client: FmpCli
     for result in results:
         if not result.passed:
             continue
-        snapshot = client.market_snapshot(result.cik, result.tickers, config.near_low_years)
+        plan_limited_before = set(client.plan_limited_endpoints)
+        try:
+            snapshot = client.market_snapshot(result.cik, result.tickers, config.near_low_years)
+        except RuntimeError as exc:
+            result.failed_filters.append("fmp_api_error")
+            result.warnings.append(str(exc))
+            result.passed = False
+            continue
+        plan_limited_now = client.plan_limited_endpoints - plan_limited_before
+        for endpoint in sorted(plan_limited_now):
+            result.warnings.append(f"fmp_plan_limited:{endpoint}")
         if snapshot is None:
             result.failed_filters.append("missing_fmp_market_data")
             result.passed = False
