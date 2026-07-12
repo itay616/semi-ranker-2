@@ -1,0 +1,53 @@
+{
+  "sic_codes": ["3559", "3672", "3674", "3679", "3825"],
+  "recent_years": 5,
+  "min_years_with_filings": 5,
+  "min_annual_reports": 5,
+  "min_quarterly_reports": 12,
+  "annual_forms": ["10-K", "10-K/A", "20-F", "20-F/A", "40-F", "40-F/A"],
+  "quarterly_forms": ["10-Q", "10-Q/A", "6-K", "6-K/A"],
+  "cfo_to_net_income_min": 0.8,
+  "debt_to_assets_max": 0.5,
+  "dividend_required": false,
+  "dividend_consistency_years": 5,
+  "acquisition_spend_to_cfo_max": 0.2,
+  "acquisition_spend_to_assets_max": 0.05,
+  "tag_aliases": {
+    "cfo": [
+      "NetCashProvidedByUsedInOperatingActivities",
+      "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations"
+    ],
+    "capex": [
+      "PaymentsToAcquirePropertyPlantAndEquipment",
+      "PaymentsToAcquireProductiveAssets",
+      "CapitalExpendituresIncurredButNotYetPaid"
+    ],
+    "net_income": [
+      "NetIncomeLoss",
+      "ProfitLoss"
+    ],
+    "assets": [
+      "Assets"
+    ],
+    "debt": [
+      "LongTermDebt",
+      "LongTermDebtCurrent",
+      "DebtCurrent",
+      "ShortTermBorrowings",
+      "LongTermDebtAndFinanceLeaseObligations",
+      "FinanceLeaseLiability"
+    ],
+    "dividends": [
+      "PaymentsOfDividends",
+      "PaymentsOfDividendsCommonStock",
+      "DividendsCommonStockCash",
+      "CommonStocksDividendsCash"
+    ],
+    "acquisitions": [
+      "PaymentsToAcquireBusinessesNetOfCashAcquired",
+      "PaymentsToAcquireBusinessesGross",
+      "BusinessCombinationAcquisitionRelatedCosts"
+    ]
+  }
+}
+

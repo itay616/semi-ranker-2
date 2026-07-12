@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "edgar-chip-screener"
+version = "0.1.0"
+description = "SEC EDGAR companyfacts/submissions screener for semiconductor companies"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+edgar-chip-screener = "edgar_chip_screener.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+edgar_chip_screener = ["default_config.json"]
