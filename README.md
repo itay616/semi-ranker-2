@@ -19,7 +19,15 @@ It applies these first-pass filters:
 
 ## Data
 
-Download the two SEC bulk files:
+Download the two SEC bulk files with a declared SEC User-Agent:
+
+```powershell
+python -m edgar_chip_screener download `
+  --contact-email you@example.com `
+  --output-dir data/raw
+```
+
+This fetches:
 
 - `https://www.sec.gov/Archives/edgar/daily-index/bulkdata/submissions.zip`
 - `https://www.sec.gov/Archives/edgar/daily-index/xbrl/companyfacts.zip`
@@ -30,6 +38,8 @@ Put them anywhere locally, for example:
 data/raw/submissions.zip
 data/raw/companyfacts.zip
 ```
+
+The SEC expects automated requests to identify the tool and contact email. Do not use a fake email.
 
 ## Run
 
@@ -63,4 +73,3 @@ The CSV includes one row per chip-related filer found in `submissions.zip`, with
 ## Notes
 
 This is a first-pass SEC-only screener. It intentionally does not check market cap, dividend yield, price/book, credit rating, or historical price lows because those require market or ratings data outside the two SEC ZIPs.
-

@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import date
 
 from edgar_chip_screener.config import load_config
+from edgar_chip_screener.download import build_user_agent
 from edgar_chip_screener.screen import _screen_company
 from edgar_chip_screener.submissions import CompanySubmission
 
@@ -38,6 +39,10 @@ def test_company_fails_negative_fcf() -> None:
     result = _screen_company(company, companyfacts, config, date(2026, 7, 12))
     assert not result.passed
     assert "non_positive_fcf" in result.failed_filters
+
+
+def test_user_agent_requires_contact_email() -> None:
+    assert build_user_agent("owner@example.com") == "semi-ranker-2/0.1 contact=owner@example.com"
 
 
 def _filings() -> list[dict[str, str]]:
@@ -103,4 +108,3 @@ def _instant_fact(year: int, value: float) -> dict:
         "accn": f"{year}-000001",
         "end": f"{year}-12-31",
     }
-

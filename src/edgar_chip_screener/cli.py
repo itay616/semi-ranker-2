@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 
 from .config import load_config
+from .download import download_sec_bulk_files
 from .screen import run_screen
 
 
@@ -19,14 +20,27 @@ def main() -> None:
     screen_parser.add_argument("--config", help="Path to JSON config")
     screen_parser.add_argument("--output", default="outputs/chip_screen.csv", help="Output CSV path")
 
+    download_parser = subparsers.add_parser("download", help="Download SEC bulk ZIP files")
+    download_parser.add_argument("--output-dir", default="data/raw", help="Directory for SEC ZIP files")
+    download_parser.add_argument(
+        "--contact-email",
+        required=True,
+        help="Email included in the SEC User-Agent declaration",
+    )
+    download_parser.add_argument("--overwrite", action="store_true", help="Replace existing ZIP files")
+
     args = parser.parse_args()
     if args.command == "screen":
         config = load_config(args.config)
         results = run_screen(args.submissions, args.companyfacts, config, args.output)
         passed = sum(1 for result in results if result.passed)
         print(f"Screened {len(results)} chip-related filers. Passed: {passed}. Output: {args.output}")
+    elif args.command == "download":
+        paths = download_sec_bulk_files(args.output_dir, args.contact_email, args.overwrite)
+        print("Downloaded SEC data:")
+        for path in paths:
+            print(f"- {path}")
 
 
 if __name__ == "__main__":
     main()
-
